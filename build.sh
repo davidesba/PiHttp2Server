@@ -16,5 +16,3 @@ cp -f /root/raspberry/build.tgz /build
 echo Changing owner from \$(id -u):\$(id -g) to $(id -u):$(id -u)
 chown -R $(id -u):$(id -u) /build
 COMMANDS
-
-#docker rmi crosscompile
