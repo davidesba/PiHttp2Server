@@ -65,5 +65,5 @@ RUN cd /root/raspberry/PiHttp2Server && \
   cd build && \
   cmake .. && \
   make -j`nproc` && \
-  cp Http2Server /root/raspberry/bin && \
+  cp PiHttp2Server /root/raspberry/bin && \
   rm -fR /root/raspberry/PiHttp2Server
