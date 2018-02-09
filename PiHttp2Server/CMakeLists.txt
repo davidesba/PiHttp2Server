@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(Http2Server VERSION 1.0.0)
+project(PiHttp2Server VERSION 1.0.0)
 
-SET(EXECUTABLE_BINARY_NAME "Http2Server")
-SET(APPLICATION_BINARY_NAME "Http2Server_lib")
+SET(EXECUTABLE_BINARY_NAME "PiHttp2Server")
+SET(APPLICATION_BINARY_NAME "PiHttp2Server_lib")
 
 set(CMAKE_SYSTEM_PROCESSOR armv7l)
 set(CMAKE_CROSS_COMPILING 1)
