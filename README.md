@@ -5,8 +5,6 @@ Cross compilation is done using Docker.
 
 Basic file server is mounted on top of http2:
 
-{::nomarkdown}
-
 <!DOCTYPE html>
 <html>
     <head>
@@ -60,8 +58,6 @@ Basic file server is mounted on top of http2:
       </table>
    </body>
 </html>
-
-{:/}
 
 # Requirements
 Docker
