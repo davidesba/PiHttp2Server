@@ -2,7 +2,9 @@
 #include "CTML/CTML.h"
 #include "dirent.h"
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
+#include <iostream>
+#include <fstream>
+#include <memory>
 
 using namespace Interface::Resource;
 using namespace nghttp2::asio_http2;
@@ -48,6 +50,25 @@ void FileServerResource::handle_get(const request & req, const response & res)
             }"));
 
       doc.AddNodeToBody(CTML::Node("h2", std::string("Index of ") + fullPath));
+
+      CTML::Node uploadForm("form");
+      uploadForm.SetAttribute("id", "uploadbanner");
+      uploadForm.SetAttribute("enctype", "multipart/form-data");
+      uploadForm.SetAttribute("method", "post");
+      uploadForm.SetAttribute("action", "#");
+      CTML::Node inputForm("input");
+      inputForm.SetAttribute("id", "uploadbanner");
+      inputForm.SetAttribute("name", "myfile");
+      inputForm.SetAttribute("type", "file");
+      CTML::Node submitForm("input");
+      submitForm.SetAttribute("type", "submit");
+      submitForm.SetAttribute("value", "Upload");
+      submitForm.SetAttribute("id", "submit");
+
+      uploadForm.AppendChild(inputForm);
+      uploadForm.AppendChild(submitForm);
+      doc.AddNodeToBody(uploadForm);
+
       CTML::Node table("table");
       CTML::Node tableIndex("tr");
       tableIndex.AppendChild(CTML::Node("th").SetContent("Name"));
@@ -123,8 +144,46 @@ void FileServerResource::handle_put(const request &req, const response &res)
 
 void FileServerResource::handle_post(const request &req, const response &res)
 {
-   res.write_head(405);
-   res.end();
+   auto path = percent_decode(req.uri().path);
+   auto fullPath = docRootM + path;
+   std::shared_ptr<std::string> receivedData(new std::string());
+
+   req.on_data([&res, fullPath, receivedData](const uint8_t *data, std::size_t len)
+   {
+      if (len > 0)
+      {
+         receivedData->append(std::string((const char*)data, len));
+      }
+      else
+      {
+         std::string line, line2;
+         std::string fileName;
+         size_t headerPos = receivedData->find("\r\n\r\n");
+
+         std::string header = receivedData->substr(0,headerPos);
+         size_t pos = header.find("filename=");
+         if (pos != std::string::npos)
+         {
+            fileName = header.substr(pos+10,header.find("\"",pos+10) - pos - 10);
+         }
+
+         std::string fileData = receivedData->substr(headerPos+4);
+         std::istringstream received(fileData);
+
+         std::ofstream outputFile;
+         outputFile.open(fullPath + fileName);
+         while (std::getline(received, line))
+         {
+            if (!std::getline(received, line2))
+               break;
+            outputFile << line << '\n';
+            outputFile << line2 << '\n';  
+         }
+         outputFile.close();
+         res.write_head(200);
+         res.end();
+      }
+   });
 }
 
 void FileServerResource::handle_delete(const request &req, const response &res)

@@ -1,0 +1,54 @@
+Sending build context to Docker daemon  24.33MB
+Step 1/8 : FROM ubuntu
+ ---> 0458a4468cbc
+Step 2/8 : RUN apt-get -qq update && apt-get -qq install -y   git   cmake   autoconf   automake   make   g++   unzip   wget   g++-arm-linux-gnueabihf   gcc-arm-linux-gnueabihf &&   rm -rf /var/lib/apt/lists/*
+ ---> Using cache
+ ---> 238255d5c93a
+Step 3/8 : RUN mkdir /root/raspberry &&   cd /root &&   echo 'using gcc : arm : arm-linux-gnueabihf-g++ ;' > ~/user-config.jam &&   wget -q https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz &&   tar -zxf /root/boost_1_66_0.tar.gz &&   cd /root/boost_1_66_0 &&   ./bootstrap.sh &&   ./b2 --prefix=/root/raspberry/ --with-atomic --with-chrono --with-date_time --with-filesystem --with-regex --with-serialization --with-thread --with-system --no-samples --no-tests toolset=gcc-arm cxxflags=-fPIC -j`nproc` &&   ./b2 --prefix=/root/raspberry/ --with-atomic --with-chrono --with-date_time --with-filesystem --with-regex --with-serialization --with-thread --with-system --no-samples --no-tests toolset=gcc-arm cxxflags=-fPIC -j`nproc` install &&   rm -fR /root/boost_1_66_0 &&   rm /root/boost_1_66_0.tar.gz
+ ---> Using cache
+ ---> 44ea33aed814
+Step 4/8 : RUN cd /root &&   wget -q https://www.openssl.org/source/openssl-1.0.2l.tar.gz &&   tar -zxf /root/openssl-1.0.2l.tar.gz &&   rm /root/openssl-1.0.2l.tar.gz &&   cd /root/openssl-1.0.2l &&   ./Configure --prefix=/root/raspberry/ os/compiler:arm-linux-gnueabihf &&   make CC="arm-linux-gnueabihf-gcc" AR="arm-linux-gnueabihf-ar r" RANLIB="arm-linux-gnueabihf-ranlib" -j`nproc` &&   make install &&   rm -fR /root/openssl-1.0.2l
+ ---> Using cache
+ ---> d189c23006a0
+Step 5/8 : RUN cd /root &&   wget -q https://github.com/nghttp2/nghttp2/releases/download/v1.30.0/nghttp2-1.30.0.tar.gz &&   tar -zxf nghttp2-1.30.0.tar.gz &&   cd /root/nghttp2-1.30.0 &&   ./configure --prefix=/root/raspberry/ --host=armv7l-unknown-linux-gnueabihf --enable-asio-lib CPPFLAGS=-I/root/raspberry/include --with-boost-libdir=/root/raspberry/lib/ CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++ &&   make -j`nproc` &&   make install &&   cp /root/nghttp2-1.30.0/./third-party/.libs/libhttp-parser.a /root/raspberry/lib &&   rm -fR /root/nghttp2-1.30.0 &&   rm -f /root/nghttp2-1.30.0.tar.gz &&   mkdir /root/raspberry/PiHttp2Server
+ ---> Using cache
+ ---> a722dfe04710
+Step 6/8 : RUN cd /root &&    git clone https://github.com/google/leveldb.git &&    cd leveldb &&    export CC=arm-linux-gnueabihf-gcc &&    export CXX=arm-linux-gnueabihf-g++ &&    export TARGET_OS=Linux &&    make -j`nproc` &&    cp -r include/leveldb/ /root/raspberry/include/ &&    cp out-static/*.a /root/raspberry/lib &&    rm -fR /root/leveldb
+ ---> Using cache
+ ---> 728be08a4809
+Step 7/8 : COPY PiHttp2Server /root/raspberry/PiHttp2Server
+ ---> 5f78448bee9f
+Step 8/8 : RUN cd /root/raspberry/PiHttp2Server &&   mkdir build &&   cd build &&   cmake .. &&   make -j`nproc` &&   cp Http2Server /root/raspberry/bin &&   rm -fR /root/raspberry/PiHttp2Server
+ ---> Running in 4ad6037d9223
+-- The C compiler identification is GNU 5.4.0
+-- The CXX compiler identification is GNU 5.4.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /root/raspberry/PiHttp2Server/build
+Scanning dependencies of target Http2Server
+[ 11%] Building CXX object CMakeFiles/Http2Server.dir/src/Http2Server.cpp.o
+[ 22%] Building CXX object CMakeFiles/Http2Server.dir/src/Interface/Resource/FileServerResource.cpp.o
+[ 33%] Building CXX object CMakeFiles/Http2Server.dir/src/Interface/Resource/NoRouteResource.cpp.o
+[ 44%] Building CXX object CMakeFiles/Http2Server.dir/src/Interface/Resource/Factory/NoRouteResourceFactory.cpp.o
+[ 66%] Building CXX object CMakeFiles/Http2Server.dir/src/Interface/Resource/AbstractResource.cpp.o
+[ 66%] Building CXX object CMakeFiles/Http2Server.dir/src/Interface/Resource/Factory/FileServerResourceFactory.cpp.o
+[ 77%] Building CXX object CMakeFiles/Http2Server.dir/src/Interface/Router.cpp.o
+[ 88%] Building CXX object CMakeFiles/Http2Server.dir/src/Interface/Resource/Factory/Factory.cpp.o
+[100%] Linking CXX executable Http2Server
+[100%] Built target Http2Server
+Removing intermediate container 4ad6037d9223
+ ---> 484f49af52f3
+Successfully built 484f49af52f3
+Successfully tagged crosscompile:latest
