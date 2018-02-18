@@ -29,6 +29,8 @@ namespace Resource {
       bool isDirectory(const std::string& filePath);
 
       bool pathExist(const std::string& filePath);
+
+      std::string convertSize(uintmax_t size);
     };
 
 } }

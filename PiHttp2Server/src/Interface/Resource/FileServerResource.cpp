@@ -2,6 +2,7 @@
 #include "CTML/CTML.h"
 #include "dirent.h"
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace Interface::Resource;
 using namespace nghttp2::asio_http2;
@@ -29,7 +30,29 @@ void FileServerResource::handle_get(const request & req, const response & res)
    if (isDirectory(fullPath))
    {
       CTML::Document doc;
-      doc.AddNodeToBody(CTML::Node("h1", std::string("Index of ") + fullPath));
+      doc.AddNodeToHead(CTML::Node("style","\
+            table {\
+               font-family: \"Trebuchet MS\", Arial, Helvetica, sans-serif;\
+               border-collapse: collapse;\
+            }\
+            th, td {\
+               text-align: left;\
+               padding: 8px;\
+               padding-top: 12px;\
+               padding-bottom: 12px;\
+            }\
+            tr:nth-child(even){background-color: #f2f2f2}\
+            th {\
+               background-color: #4CAF50;\
+               color: white;\
+            }"));
+
+      doc.AddNodeToBody(CTML::Node("h2", std::string("Index of ") + fullPath));
+      CTML::Node table("table");
+      CTML::Node tableIndex("tr");
+      tableIndex.AppendChild(CTML::Node("th").SetContent("Name"));
+      tableIndex.AppendChild(CTML::Node("th").SetContent("Size"));
+      table.AppendChild(tableIndex);
 
       for (auto & iter : boost::filesystem::directory_iterator(fullPath))
       {
@@ -40,12 +63,25 @@ void FileServerResource::handle_get(const request & req, const response & res)
          else
             link = path + iter.path().filename().string();
 
-         CTML::Node div("div");
-         div.AppendChild(
+         CTML::Node tr("tr");
+         CTML::Node fileName("td");
+
+         fileName.AppendChild(
             CTML::Node("a.link").SetContent(iter.path().filename().string()).SetAttribute(
                "href", link));
-         doc.AddNodeToBody(div);
+         tr.AppendChild(fileName);
+         
+         std::string fSize = "-";
+         if (filesys::is_regular_file(fullPath + iter.path().filename().string()))
+         {
+            fSize = convertSize(filesys::file_size(fullPath + iter.path().filename().string()));
+         }
+
+         tr.AppendChild(CTML::Node("td").SetContent(fSize));
+
+         table.AppendChild(tr);
       }
+      doc.AddNodeToBody(table);
 
       auto header = header_map();
       auto textDoc = doc.ToString(CTML::Readability::MULTILINE);
@@ -119,4 +155,26 @@ bool FileServerResource::pathExist(const std::string& filePath)
    }
    catch (filesys::filesystem_error & e) {}
    return false;
+}
+
+std::string FileServerResource::convertSize(uintmax_t size)
+{              
+   const char *SIZES[] = { "B", "KB", "MB", "GB" };
+   int div = 0;
+   uintmax_t rem = 0;
+
+   while (size >= 1024 && div < (sizeof SIZES / sizeof *SIZES))
+   {
+      rem = (size % 1024);
+      div++;
+      size /= 1024;
+   }
+
+   double size_d = (float)size + (float)rem / 1024.0;
+   std::string result = std::to_string(size_d);
+
+   result = result.substr(0, div>0 ? result.size()-4 : result.size()-7) 
+               + std::string(" ") + SIZES[div];
+               
+   return result;
 }
