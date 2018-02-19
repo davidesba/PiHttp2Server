@@ -3,9 +3,9 @@ Http2 server for Raspberry Pi based on nghttp2.
 
 Cross compilation is done using Docker.
 
-Basic file server is mounted on top of http2
+Basic file server is mounted on top of http2:
 
-![screenshot](https://www.amazon.es/clouddrive/share/TxtnWzkEDDqZG2AveKTGku8q2st72J2N5idAHsaSm7h)
+![screenshot](https://user-images.githubusercontent.com/30145878/36399229-39902974-15cb-11e8-991a-b3e1783811cb.png)
 
 # Requirements
 Docker
