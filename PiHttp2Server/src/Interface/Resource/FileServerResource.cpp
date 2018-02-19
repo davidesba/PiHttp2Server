@@ -161,23 +161,26 @@ void FileServerResource::handle_post(const request &req, const response &res)
          size_t headerPos = receivedData->find("\r\n\r\n");
 
          std::string header = receivedData->substr(0,headerPos);
+         std::string first = header.substr(0, header.find("\n")-2);
          size_t pos = header.find("filename=");
          if (pos != std::string::npos)
          {
             fileName = header.substr(pos+10,header.find("\"",pos+10) - pos - 10);
          }
 
-         std::string fileData = receivedData->substr(headerPos+4);
+         std::string fileData = receivedData->substr(
+            headerPos+4, receivedData->find_last_of(first) - headerPos - first.size() - 8);
+         fileData.append("\n");
          std::istringstream received(fileData);
 
          std::ofstream outputFile;
          outputFile.open(fullPath + fileName);
+
+         std::getline(received, line);
+         outputFile << line;
          while (std::getline(received, line))
          {
-            if (!std::getline(received, line2))
-               break;
-            outputFile << line << '\n';
-            outputFile << line2 << '\n';  
+            outputFile << '\n' << line;
          }
          outputFile.close();
          res.write_head(200);
