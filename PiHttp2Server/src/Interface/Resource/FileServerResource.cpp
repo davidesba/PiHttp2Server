@@ -10,8 +10,10 @@ using namespace Interface::Resource;
 using namespace nghttp2::asio_http2;
 using namespace nghttp2::asio_http2::server;
 namespace filesys = boost::filesystem;
+using namespace std;
+using namespace CTML;
 
-FileServerResource::FileServerResource(std::string & docRoot)
+FileServerResource::FileServerResource(string & docRoot)
    :AbstractResource(docRoot)
 {}
 
@@ -29,10 +31,12 @@ void FileServerResource::handle_get(const request & req, const response & res)
       return;
    }
 
+   //List directory content
    if (isDirectory(fullPath))
    {
-      CTML::Document doc;
-      doc.AddNodeToHead(CTML::Node("style","\
+      //Create main document including CSS style
+      Document doc;
+      doc.AddNodeToHead(Node("style","\
             table {\
                font-family: \"Trebuchet MS\", Arial, Helvetica, sans-serif;\
                border-collapse: collapse;\
@@ -49,18 +53,19 @@ void FileServerResource::handle_get(const request & req, const response & res)
                color: white;\
             }"));
 
-      doc.AddNodeToBody(CTML::Node("h2", std::string("Index of ") + fullPath));
+      doc.AddNodeToBody(Node("h2", string("Index of ") + fullPath));
 
-      CTML::Node uploadForm("form");
+      //POST form to upload files
+      Node uploadForm("form");
       uploadForm.SetAttribute("id", "uploadbanner");
       uploadForm.SetAttribute("enctype", "multipart/form-data");
       uploadForm.SetAttribute("method", "post");
       uploadForm.SetAttribute("action", "#");
-      CTML::Node inputForm("input");
+      Node inputForm("input");
       inputForm.SetAttribute("id", "uploadbanner");
       inputForm.SetAttribute("name", "myfile");
       inputForm.SetAttribute("type", "file");
-      CTML::Node submitForm("input");
+      Node submitForm("input");
       submitForm.SetAttribute("type", "submit");
       submitForm.SetAttribute("value", "Upload");
       submitForm.SetAttribute("id", "submit");
@@ -69,48 +74,50 @@ void FileServerResource::handle_get(const request & req, const response & res)
       uploadForm.AppendChild(submitForm);
       doc.AddNodeToBody(uploadForm);
 
-      CTML::Node table("table");
-      CTML::Node tableIndex("tr");
-      tableIndex.AppendChild(CTML::Node("th").SetContent("Name"));
-      tableIndex.AppendChild(CTML::Node("th").SetContent("Size"));
+      //Table with name and size for the contents of the directory
+      Node table("table");
+      Node tableIndex("tr");
+      tableIndex.AppendChild(Node("th").SetContent("Name"));
+      tableIndex.AppendChild(Node("th").SetContent("Size"));
       table.AppendChild(tableIndex);
 
       for (auto & iter : boost::filesystem::directory_iterator(fullPath))
       {
-         std::string link;
+         string link;
          
          if (path != "/")
-            link = path + std::string("/") + iter.path().filename().string();
+            link = path + string("/") + iter.path().filename().string();
          else
             link = path + iter.path().filename().string();
 
-         CTML::Node tr("tr");
-         CTML::Node fileName("td");
+         Node tr("tr");
+         Node fileName("td");
 
          fileName.AppendChild(
-            CTML::Node("a.link").SetContent(iter.path().filename().string()).SetAttribute(
+            Node("a.link").SetContent(iter.path().filename().string()).SetAttribute(
                "href", link));
          tr.AppendChild(fileName);
          
-         std::string fSize = "-";
+         string fSize = "-";
          if (filesys::is_regular_file(fullPath + iter.path().filename().string()))
          {
             fSize = convertSize(filesys::file_size(fullPath + iter.path().filename().string()));
          }
 
-         tr.AppendChild(CTML::Node("td").SetContent(fSize));
+         tr.AppendChild(Node("td").SetContent(fSize));
 
          table.AppendChild(tr);
       }
       doc.AddNodeToBody(table);
 
       auto header = header_map();
-      auto textDoc = doc.ToString(CTML::Readability::MULTILINE);
+      auto textDoc = doc.ToString(Readability::MULTILINE);
       header.emplace("content-length",
-                           header_value{std::to_string(textDoc.size())});
-      res.write_head(200, std::move(header));
+                           header_value{to_string(textDoc.size())});
+      res.write_head(200, move(header));
       res.end(textDoc);
    }
+   //Read file and return data
    else
    {
       auto fd = open(fullPath.c_str(), O_RDONLY);
@@ -127,11 +134,11 @@ void FileServerResource::handle_get(const request & req, const response & res)
       if (stat(fullPath.c_str(), &stbuf) == 0)
       {
          header.emplace("content-length",
-                           header_value{std::to_string(stbuf.st_size)});
+                           header_value{to_string(stbuf.st_size)});
          header.emplace("last-modified",
                            header_value{http_date(stbuf.st_mtime)});
       }
-      res.write_head(200, std::move(header));
+      res.write_head(200, move(header));
       res.end(file_generator_from_fd(fd));
    }
 }
@@ -146,43 +153,44 @@ void FileServerResource::handle_post(const request &req, const response &res)
 {
    auto path = percent_decode(req.uri().path);
    auto fullPath = docRootM + path;
-   std::shared_ptr<std::string> receivedData(new std::string());
+   shared_ptr<string> fileName(new string());
+   shared_ptr<string> messageId(new string());
+   shared_ptr<ofstream> outputFile(new ofstream());
 
-   req.on_data([&res, fullPath, receivedData](const uint8_t *data, std::size_t len)
+   //This funtion is called every time we receive a chunk of data
+   req.on_data([&res, fullPath, fileName, messageId, outputFile](const uint8_t *data, size_t len)
    {
+      string receivedData = string((const char*)data, len);
+
       if (len > 0)
       {
-         receivedData->append(std::string((const char*)data, len));
+         //Find filename and messageId in the first chunk of data
+         if (fileName->size() == 0)
+         {
+            size_t headerPos = receivedData.find("\r\n\r\n");
+            string header = receivedData.substr(0,headerPos);
+            *(messageId.get()) = header.substr(0, header.find("\n")-2);
+            size_t pos = header.find("filename=");
+            if (pos != string::npos)
+            {
+               *(fileName.get()) = header.substr(pos+10,header.find("\"",pos+10) - pos - 10);
+            }
+
+            receivedData = receivedData.substr(headerPos+4);
+            outputFile->open(fullPath + *(fileName.get()));
+         }
+
+         //Check if we have the last chunk
+         size_t last = receivedData.find(string("\r\n") + *(messageId.get()));
+         if (last != string::npos)
+         {
+            receivedData = receivedData.substr(0, last);
+         }
+         *(outputFile.get()) << receivedData;
       }
       else
       {
-         std::string line, line2;
-         std::string fileName;
-         size_t headerPos = receivedData->find("\r\n\r\n");
-
-         std::string header = receivedData->substr(0,headerPos);
-         std::string first = header.substr(0, header.find("\n")-2);
-         size_t pos = header.find("filename=");
-         if (pos != std::string::npos)
-         {
-            fileName = header.substr(pos+10,header.find("\"",pos+10) - pos - 10);
-         }
-
-         std::string fileData = receivedData->substr(
-            headerPos+4, receivedData->find_last_of(first) - headerPos - first.size() - 8);
-         fileData.append("\n");
-         std::istringstream received(fileData);
-
-         std::ofstream outputFile;
-         outputFile.open(fullPath + fileName);
-
-         std::getline(received, line);
-         outputFile << line;
-         while (std::getline(received, line))
-         {
-            outputFile << '\n' << line;
-         }
-         outputFile.close();
+         outputFile->close();
          res.write_head(200);
          res.end();
       }
@@ -195,7 +203,7 @@ void FileServerResource::handle_delete(const request &req, const response &res)
    res.end();
 }
 
-bool FileServerResource::isDirectory(const std::string& filePath)
+bool FileServerResource::isDirectory(const string& filePath)
 {
    try
    {
@@ -207,7 +215,7 @@ bool FileServerResource::isDirectory(const std::string& filePath)
    return false;
 }
 
-bool FileServerResource::pathExist(const std::string& filePath)
+bool FileServerResource::pathExist(const string& filePath)
 {
    try
    {
@@ -219,7 +227,7 @@ bool FileServerResource::pathExist(const std::string& filePath)
    return false;
 }
 
-std::string FileServerResource::convertSize(uintmax_t size)
+string FileServerResource::convertSize(uintmax_t size)
 {              
    const char *SIZES[] = { "B", "KB", "MB", "GB" };
    int div = 0;
@@ -233,10 +241,10 @@ std::string FileServerResource::convertSize(uintmax_t size)
    }
 
    double size_d = (float)size + (float)rem / 1024.0;
-   std::string result = std::to_string(size_d);
+   string result = to_string(size_d);
 
    result = result.substr(0, div>0 ? result.size()-4 : result.size()-7) 
-               + std::string(" ") + SIZES[div];
+               + string(" ") + SIZES[div];
                
    return result;
 }
