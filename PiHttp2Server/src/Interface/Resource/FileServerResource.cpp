@@ -40,6 +40,10 @@ void FileServerResource::handle_get(const request & req, const response & res)
             table {\
                font-family: \"Trebuchet MS\", Arial, Helvetica, sans-serif;\
                border-collapse: collapse;\
+               width: 60%;\
+            }\
+            form {\
+               text-align: center;\
             }\
             th, td {\
                text-align: left;\
@@ -53,7 +57,8 @@ void FileServerResource::handle_get(const request & req, const response & res)
                color: white;\
             }"));
 
-      doc.AddNodeToBody(Node("h2", string("Index of ") + fullPath));
+      doc.AddNodeToBody(
+            Node("h2", string("Index of ") + fullPath).SetAttribute("align", "center"));
 
       //POST form to upload files
       Node uploadForm("form");
@@ -76,6 +81,7 @@ void FileServerResource::handle_get(const request & req, const response & res)
 
       //Table with name and size for the contents of the directory
       Node table("table");
+      table.SetAttribute("align", "center");
       Node tableIndex("tr");
       tableIndex.AppendChild(Node("th").SetContent("Name"));
       tableIndex.AppendChild(Node("th").SetContent("Size"));
