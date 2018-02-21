@@ -9,7 +9,7 @@ set(CMAKE_CROSS_COMPILING 1)
 set(CMAKE_C_COMPILER arm-linux-gnueabihf-gcc)
 set(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -O2")
-set(LINK_FLAGS "-lssl -lcrypto -lboost_thread -lboost_system -lboost_filesystem -ldl -pthread")
+set(LINK_FLAGS "-lssl -lcrypto -lboost_thread -lboost_system -lboost_filesystem -ldl -pthread -lmongocxx -lbsoncxx")
 set(CMAKE_AR arm-linux-gnueabihf-ar)
 set(CMAKE_LINKER arm-linux-gnueabihf-ld)
 set(CMAKE_NM arm-linux-gnueabihf-nm)
@@ -23,10 +23,14 @@ set(PROJECT_INCLUDE_DIR ${CMAKE_HOME_DIRECTORY}/include)
 set(PROJECT_SOURCE_DIR ${CMAKE_HOME_DIRECTORY}/src)
 set(RASPBERRY_LIB_DIR "/root/raspberry/lib")
 set(RASPBERRY_INCLUDE_DIR "/root/raspberry/include")
+set(MONGO_CXX_INCLUDE_DIR "/root/raspberry/include/mongocxx/v_noabi")
+set(BSON_CXX_INCLUDE_DIR "/root/raspberry/include/bsoncxx/v_noabi")
+set(MONGOC_INCLUDE_DIR "/root/raspberry/include/libmongoc-1.0")
 
 file(GLOB SOURCE_FILES_TOP "${PROJECT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE SOURCE_FILES_NESTED
     ${PROJECT_SOURCE_DIR}/Interface/*.cpp
+    ${PROJECT_SOURCE_DIR}/Exchange/*.cpp
 )
 set(SOURCE_FILES ${SOURCE_FILES_TOP} ${SOURCE_FILES_NESTED})
 
@@ -43,6 +47,9 @@ find_library(LIB_PARSER libhttp-parser.a
 include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("${RASPBERRY_INCLUDE_DIR}")
+include_directories("${MONGO_CXX_INCLUDE_DIR}")
+include_directories("${BSON_CXX_INCLUDE_DIR}")
+include_directories("${MONGOC_INCLUDE_DIR}")
 
 link_directories("${RASPBERRY_LIB_DIR}")
 

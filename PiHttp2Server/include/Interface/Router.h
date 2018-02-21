@@ -2,6 +2,7 @@
 #include <string>
 #include "Resource/Factory/AbstractFactory.h"
 #include <nghttp2/asio_http2_server.h>
+#include "Exchange/Exchange.h"
 
 namespace Interface {
 
@@ -16,5 +17,6 @@ namespace Interface {
         void init();
         nghttp2::asio_http2::server::http2 &serverM;
         std::string &docRootM;
+        Exchange::Exchange exchangeM;
     };
 }
