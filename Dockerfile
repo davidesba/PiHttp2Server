@@ -6,11 +6,13 @@ RUN apt-get -qq update && apt-get -qq install -y \
   autoconf \
   automake \
   make \
-  g++ \
-  unzip \
   wget \
   g++-arm-linux-gnueabihf \
-  gcc-arm-linux-gnueabihf && \
+  gcc-arm-linux-gnueabihf \
+  python \
+  python-pip && \
+  pip install --upgrade pip && \
+  pip install pyaml && \
   rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /root/raspberry && \
@@ -48,15 +50,30 @@ RUN cd /root && \
   mkdir /root/raspberry/PiHttp2Server
 
 RUN cd /root && \
-   git clone https://github.com/google/leveldb.git && \
-   cd leveldb && \
-   export CC=arm-linux-gnueabihf-gcc && \
-   export CXX=arm-linux-gnueabihf-g++ && \
-   export TARGET_OS=Linux && \
-   make -j`nproc` && \
-   cp -r include/leveldb/ /root/raspberry/include/ && \
-   cp out-static/*.a /root/raspberry/lib && \
-   rm -fR /root/leveldb
+  wget https://github.com/mongodb/libbson/releases/download/1.9.2/libbson-1.9.2.tar.gz && \
+  tar -zxf libbson-1.9.2.tar.gz && \
+  cd /root/libbson-1.9.2 && \
+  ./configure --prefix=/root/raspberry/ --host=armv7l-unknown-linux-gnueabihf CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++ && \
+  make -j`nproc` && \
+  make install && \
+  rm -fR /root/libbson-1.9.2 && \
+  rm -f /root/libbson-1.9.2.tar.gz && \
+  cd /root && \
+  wget https://github.com/mongodb/mongo-c-driver/releases/download/1.9.2/mongo-c-driver-1.9.2.tar.gz && \
+  tar -zxf mongo-c-driver-1.9.2.tar.gz && \
+  cd mongo-c-driver-1.9.2 && \
+  ./configure --prefix=/root/raspberry/ --host=armv7l-unknown-linux-gnueabihf CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++ && \
+  make -j`nproc` && \
+  make install && \
+  rm -fR /root/mongo-c-driver-1.9.2 && \
+  rm -f /root/mongo-c-driver-1.9.2.tar.gz && \
+  cd /root && \
+  git clone https://github.com/mongodb/mongo-cxx-driver.git && \
+  cd /root/mongo-cxx-driver/build && \
+  cmake -DCMAKE_SYSTEM_PROCESSOR=armv7l -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ -DCMAKE_INSTALL_PREFIX=/root/raspberry/ -DCMAKE_PREFIX_PATH=/root/raspberry/ .. && \
+  make -j`nproc` && \
+  make install && \
+  rm -fR /root/mongo-cxx-driver
 
 COPY PiHttp2Server /root/raspberry/PiHttp2Server
 
