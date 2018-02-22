@@ -3,7 +3,7 @@
 
 using namespace Interface::Resource;
 
-std::unique_ptr<AbstractResource> Factory::NoRouteResourceFactory::createResource(std::string & docRoot)
+std::unique_ptr<AbstractResource> Factory::NoRouteResourceFactory::createResource(std::string & docRoot, Exchange::Exchange & exchange)
 {
-   return std::unique_ptr<AbstractResource>(new NoRouteResource(docRoot));
+   return std::unique_ptr<AbstractResource>(new NoRouteResource(docRoot, exchange));
 }

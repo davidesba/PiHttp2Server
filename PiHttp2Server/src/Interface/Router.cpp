@@ -16,7 +16,7 @@ Router::Router(http2 &server, string &docRoot)
 void Router::init()
 {
    addRoute("/", "FileServerResource");
-
+   addRoute("/RestApi/1.0/Measure", "MeasureResource");
 }
 
 shared_ptr<Resource::AbstractResource> Router::createRequestHandler(const string & factory)
@@ -24,7 +24,7 @@ shared_ptr<Resource::AbstractResource> Router::createRequestHandler(const string
    shared_ptr<Resource::Factory::AbstractFactory> fac =
       Resource::Factory::Factory::createResourceFactory(factory);
 
-   return fac->createResource(docRootM);
+   return fac->createResource(docRootM, exchangeM);
 }
 
 void Router::addRoute(const string & route, const string & factory)

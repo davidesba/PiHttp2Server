@@ -3,7 +3,7 @@
 
 using namespace Interface::Resource;
 
-std::unique_ptr<AbstractResource> Factory::FileServerResourceFactory::createResource(std::string & docRoot)
+std::unique_ptr<AbstractResource> Factory::FileServerResourceFactory::createResource(std::string & docRoot, Exchange::Exchange & exchange)
 {
-   return std::unique_ptr<AbstractResource>(new FileServerResource(docRoot));
+   return std::unique_ptr<AbstractResource>(new FileServerResource(docRoot, exchange));
 }

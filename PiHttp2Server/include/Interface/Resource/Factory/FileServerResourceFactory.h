@@ -10,7 +10,8 @@ namespace Factory {
     class FileServerResourceFactory : public AbstractFactory
     {
     public:
-        std::unique_ptr<Interface::Resource::AbstractResource> createResource(std::string & docRoot);
+        std::unique_ptr<Interface::Resource::AbstractResource> createResource(
+                  std::string & docRoot, Exchange::Exchange & exchange);
     };
 
 } } }

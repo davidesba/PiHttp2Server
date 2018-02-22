@@ -1,13 +1,15 @@
 #ifndef _BROKERIF_H_
 #define _BROKERIF_H_
 
+#include <bsoncxx/json.hpp>
+
 namespace Exchange {
 namespace Broker {
 
 class BrokerIf
 {
    public:
-      virtual void storeMeasure() = 0;
+      virtual bool createMeasure(bsoncxx::document::value & doc) = 0;
 };
 
 } }

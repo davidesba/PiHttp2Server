@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <mongocxx/pool.hpp>
+#include <mongocxx/client.hpp>
 #include "Exchange/Broker/BrokerIf.h"
 
 namespace Exchange {
@@ -12,10 +13,12 @@ class MongoDBBroker : public BrokerIf
 {
    public:
       MongoDBBroker();
-      virtual void storeMeasure();
+      ~MongoDBBroker();
+      virtual bool createMeasure(bsoncxx::document::value & doc);
 
    private:
       std::unique_ptr<mongocxx::pool> poolM;
+      mongocxx::database dbM;
 };
 
 } }

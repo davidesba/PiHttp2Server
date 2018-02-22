@@ -13,7 +13,8 @@ namespace Factory {
     class AbstractFactory
     {
     public:
-        virtual std::unique_ptr<Interface::Resource::AbstractResource> createResource(std::string & docRoot) = 0;
+        virtual std::unique_ptr<Interface::Resource::AbstractResource> createResource(
+                  std::string & docRoot, Exchange::Exchange & exchange) = 0;
 
     };
 

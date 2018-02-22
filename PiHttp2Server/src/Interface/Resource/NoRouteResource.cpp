@@ -3,8 +3,8 @@
 using namespace Interface::Resource;
 using namespace nghttp2::asio_http2::server;
 
-NoRouteResource::NoRouteResource(std::string & docRoot)
-   :AbstractResource(docRoot)
+NoRouteResource::NoRouteResource(std::string & docRoot, Exchange::Exchange & exchange)
+   :AbstractResource(docRoot, exchange)
 {}
 
 NoRouteResource::~NoRouteResource() {}

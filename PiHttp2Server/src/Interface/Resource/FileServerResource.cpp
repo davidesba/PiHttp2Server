@@ -13,8 +13,8 @@ namespace filesys = boost::filesystem;
 using namespace std;
 using namespace CTML;
 
-FileServerResource::FileServerResource(string & docRoot)
-   :AbstractResource(docRoot)
+FileServerResource::FileServerResource(string & docRoot, Exchange::Exchange & exchange)
+   :AbstractResource(docRoot, exchange)
 {}
 
 FileServerResource::~FileServerResource() {}

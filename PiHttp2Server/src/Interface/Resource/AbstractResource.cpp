@@ -3,8 +3,9 @@
 using namespace Interface::Resource;
 using namespace nghttp2::asio_http2::server;
 
-AbstractResource::AbstractResource(std::string & docRoot)
-   :docRootM(docRoot)
+AbstractResource::AbstractResource(std::string & docRoot, Exchange::Exchange & exchange)
+   :docRootM(docRoot),
+    exchangeM(exchange)
 {}
 
 AbstractResource::~AbstractResource()

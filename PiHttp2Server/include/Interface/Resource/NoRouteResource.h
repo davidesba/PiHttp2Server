@@ -10,8 +10,10 @@ namespace Resource {
     class NoRouteResource : public AbstractResource
     {
     public:
-      NoRouteResource(std::string & docRoot);
+      
+      NoRouteResource(std::string & docRoot, Exchange::Exchange & exchange);
       ~NoRouteResource();
+
       virtual void handleRequest(const nghttp2::asio_http2::server::request & req,
                                  const nghttp2::asio_http2::server::response & res);
     };
