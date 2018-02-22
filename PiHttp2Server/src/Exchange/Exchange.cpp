@@ -16,12 +16,12 @@ Exchange::Exchange()
    brokerM = BrokerFactory::createBrokerFactory(factory)->createBroker();
 }
 
-bool Exchange::createMeasure(const uint8_t *data, size_t len)
+bool Exchange::create(std::string & type, const uint8_t *data, size_t len)
 {
    try
    {
       auto bData = from_json(string((const char*)data, len));
-      return brokerM->createMeasure(bData);
+      return brokerM->create(type, bData);
    }
    catch (exception e)
    {

@@ -20,13 +20,12 @@ MongoDBBroker::MongoDBBroker()
 MongoDBBroker::~MongoDBBroker()
 {}
 
-bool MongoDBBroker::createMeasure(bsoncxx::document::value & doc)
-{
-   collection measures = dbM["Measures"];
-   
+bool MongoDBBroker::create(std::string & type, bsoncxx::document::value & doc)
+{  
    try
    {
-      auto result = measures.insert_one(std::move(doc));
+      collection col = dbM[type];
+      auto result = col.insert_one(std::move(doc));
       return (result->result().inserted_count() == 1);
    }
    catch (const bulk_write_exception& e)

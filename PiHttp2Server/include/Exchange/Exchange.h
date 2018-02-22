@@ -10,7 +10,7 @@ class Exchange
 {
    public:
       Exchange();
-      bool createMeasure(const uint8_t *data, size_t len);
+      bool create(std::string & type, const uint8_t *data, size_t len);
 
    private:
       std::unique_ptr<Broker::BrokerIf> brokerM;

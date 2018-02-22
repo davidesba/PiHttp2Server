@@ -9,7 +9,7 @@ namespace Broker {
 class BrokerIf
 {
    public:
-      virtual bool createMeasure(bsoncxx::document::value & doc) = 0;
+      virtual bool create(std::string & type, bsoncxx::document::value & doc) = 0;
 };
 
 } }

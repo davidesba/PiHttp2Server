@@ -14,7 +14,7 @@ class MongoDBBroker : public BrokerIf
    public:
       MongoDBBroker();
       ~MongoDBBroker();
-      virtual bool createMeasure(bsoncxx::document::value & doc);
+      virtual bool create(std::string & type, bsoncxx::document::value & doc);
 
    private:
       std::unique_ptr<mongocxx::pool> poolM;

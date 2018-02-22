@@ -23,6 +23,8 @@ namespace Resource {
       
       virtual void handle_delete(const nghttp2::asio_http2::server::request &req,
                                  const nghttp2::asio_http2::server::response &res);
+
+      std::string typeM;
     };
 
 } }

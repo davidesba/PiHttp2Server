@@ -6,7 +6,8 @@ using namespace nghttp2::asio_http2::server;
 using namespace std;
 
 MeasureResource::MeasureResource(string & docRoot, Exchange::Exchange & exchange)
-   :AbstractResource(docRoot, exchange)
+   :AbstractResource(docRoot, exchange),
+    typeM("Measure")
 {}
 
 MeasureResource::~MeasureResource()
@@ -24,7 +25,7 @@ void MeasureResource::handle_post(const request &req, const response &res)
    {
       if (len > 0)
       {
-         if (!exchangeM.createMeasure(data, len))
+         if (!exchangeM.create(typeM, data, len))
          {
             res.write_head(500);
             res.end();
