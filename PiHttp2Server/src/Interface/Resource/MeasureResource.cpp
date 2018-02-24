@@ -15,25 +15,46 @@ MeasureResource::~MeasureResource()
 
 void MeasureResource::handle_get(const request & req, const response & res)
 {
-   res.write_head(404);
-   res.end();
+   shared_ptr<string> queryData(new string());
+   req.on_data([&res, this, queryData](const uint8_t *data, size_t len)
+   {
+      if (len > 0)
+      {
+         *(queryData.get()) += string((const char*)data, len);
+      }
+      else
+      {
+         string resData;
+         if (!exchangeM.retrieve(typeM, queryData, resData))
+         { 
+            res.write_head(500);
+            res.end();
+         }
+         else
+         {
+            res.write_head(200);
+            res.end(resData);
+         }
+      }
+   });
 }
       
 void MeasureResource::handle_post(const request &req, const response &res)
 {
-   req.on_data([&res, this](const uint8_t *data, size_t len)
+   shared_ptr<string> measureData(new string());
+   req.on_data([&res, this, measureData](const uint8_t *data, size_t len)
    {
       if (len > 0)
       {
-         if (!exchangeM.create(typeM, data, len))
-         {
-            res.write_head(500);
-            res.end();
-         }
+         *(measureData.get()) += string((const char*)data, len);
       }
       else
       {
-         res.write_head(200);
+         if (!exchangeM.create(typeM, measureData))
+            res.write_head(500);
+         else
+            res.write_head(200);
+         
          res.end();
       }
    });

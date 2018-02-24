@@ -6,13 +6,14 @@
 
 using namespace Exchange::Broker;
 using namespace mongocxx;
+using namespace std;
 
 MongoDBBroker::MongoDBBroker()
 {
    // This should be done only once
    instance instance{};
    uri uri("mongodb://localhost:27017");
-   poolM = std::unique_ptr<pool>(new pool(uri));
+   poolM = unique_ptr<pool>(new pool(uri));
    auto c = poolM->acquire();
    dbM = (*c)["MinerStats"];
 }
@@ -20,7 +21,7 @@ MongoDBBroker::MongoDBBroker()
 MongoDBBroker::~MongoDBBroker()
 {}
 
-bool MongoDBBroker::create(std::string & type, bsoncxx::document::value & doc)
+bool MongoDBBroker::create(const std::string & type, bsoncxx::document::value & doc)
 {  
    try
    {
@@ -32,5 +33,20 @@ bool MongoDBBroker::create(std::string & type, bsoncxx::document::value & doc)
    {
       return false;
    }
-   
+}
+
+bool MongoDBBroker::retrieve(const std::string & type, bsoncxx::document::value & doc, string & resData)
+{
+   collection col = dbM[type];
+   cursor cursor = col.find(std::move(doc));
+
+   resData.append("[");
+   for(auto measure : cursor)
+   {
+      resData.append(bsoncxx::to_json(measure) + string(","));
+   }
+   resData = resData.substr(0, resData.size()-1);
+   resData.append("]");
+
+   return true;
 }

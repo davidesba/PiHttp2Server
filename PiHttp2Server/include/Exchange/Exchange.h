@@ -10,7 +10,8 @@ class Exchange
 {
    public:
       Exchange();
-      bool create(std::string & type, const uint8_t *data, size_t len);
+      bool create(const std::string & type, std::shared_ptr<std::string> data);
+      bool retrieve(const std::string & type, std::shared_ptr<std::string> query, std::string & resData);
 
    private:
       std::unique_ptr<Broker::BrokerIf> brokerM;
