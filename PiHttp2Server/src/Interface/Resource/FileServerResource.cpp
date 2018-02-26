@@ -147,9 +147,9 @@ void FileServerResource::handle_get(const request & req, const response & res)
          tr.AppendChild(fileName);
          
          string fSize = "-";
-         if (filesys::is_regular_file(fullPath + iter.path().filename().string()))
+         if (filesys::is_regular_file(fullPath + "/" + iter.path().filename().string()))
          {
-            fSize = convertSize(filesys::file_size(fullPath + iter.path().filename().string()));
+            fSize = convertSize(filesys::file_size(fullPath + "/" + iter.path().filename().string()));
          }
 
          tr.AppendChild(Node("td").SetContent(fSize));
