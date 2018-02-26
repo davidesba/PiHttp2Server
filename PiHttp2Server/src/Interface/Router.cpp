@@ -15,8 +15,10 @@ Router::Router(http2 &server, string &docRoot)
 
 void Router::init()
 {
-   addRoute("/", "FileServerResource");
-   addRoute("/RestApi/1.0/Measure", "MeasureResource");
+   addRoute("/", "IndexResource");
+   addRoute("/FileServer/", "FileServerResource");
+   addRoute("/Statistics/", "StatisticsResource");
+   addRoute("/RestApi/1.0/Measure/", "MeasureResource");
 }
 
 shared_ptr<Resource::AbstractResource> Router::createRequestHandler(const string & factory)

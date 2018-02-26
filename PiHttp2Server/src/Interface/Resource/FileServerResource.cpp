@@ -22,7 +22,8 @@ FileServerResource::~FileServerResource() {}
 void FileServerResource::handle_get(const request & req, const response & res)
 {
    auto path = percent_decode(req.uri().path);
-   auto fullPath = docRootM + path;
+   path = path.substr(path.find("FileServer")+11);
+   auto fullPath = docRootM + "/" + path;
 
    if (!pathExist(fullPath))
    {
@@ -37,6 +38,10 @@ void FileServerResource::handle_get(const request & req, const response & res)
       //Create main document including CSS style
       Document doc;
       doc.AddNodeToHead(Node("style","\
+            body {\
+               margin: 0;\
+               font-family: Arial, Helvetica, sans-serif;\
+            }\
             table {\
                font-family: \"Trebuchet MS\", Arial, Helvetica, sans-serif;\
                border-collapse: collapse;\
@@ -55,9 +60,46 @@ void FileServerResource::handle_get(const request & req, const response & res)
             th {\
                background-color: #4CAF50;\
                color: white;\
+            }\
+            .topnav {\
+               overflow: hidden;\
+               background-color: #333;\
+            }\
+            .topnav a {\
+               float: left;\
+               color: #f2f2f2;\
+               text-align: center;\
+               padding: 14px 16px;\
+               text-decoration: none;\
+               font-size: 17px;\
+            }\
+            .topnav a:hover {\
+               background-color: #ddd;\
+               color: black;\
+            }\
+            .topnav a.active {\
+               background-color: #4CAF50;\
+               color: white;\
             }"));
 
+      doc.AddNodeToHead(Node("meta")
+         .SetAttribute("name", "viewport")
+         .SetAttribute("content", "width=device-width, initial-scale=1")
+      );
+
       doc.AddNodeToBody(
+         Node("div").SetAttribute("class", "topnav")
+            .AppendChild(Node("a", "Home")
+               .SetAttribute("class", "active")
+               .SetAttribute("href", "/"))
+            .AppendChild(Node("a", "FileServer")
+               .SetAttribute("href", "/FileServer"))
+            .AppendChild(Node("a", "Statistics")
+               .SetAttribute("href", "/Statistics"))
+      );
+
+      Node mainDiv("div");
+      mainDiv.AppendChild(
             Node("h2", string("Index of ") + fullPath).SetAttribute("align", "center"));
 
       //POST form to upload files
@@ -77,7 +119,7 @@ void FileServerResource::handle_get(const request & req, const response & res)
 
       uploadForm.AppendChild(inputForm);
       uploadForm.AppendChild(submitForm);
-      doc.AddNodeToBody(uploadForm);
+      mainDiv.AppendChild(uploadForm);
 
       //Table with name and size for the contents of the directory
       Node table("table");
@@ -90,11 +132,11 @@ void FileServerResource::handle_get(const request & req, const response & res)
       for (auto & iter : boost::filesystem::directory_iterator(fullPath))
       {
          string link;
-         
-         if (path != "/")
-            link = path + string("/") + iter.path().filename().string();
+
+         if (path != "")
+            link = string("/FileServer/") + path + string("/") + iter.path().filename().string();
          else
-            link = path + iter.path().filename().string();
+            link = string("/FileServer/") + iter.path().filename().string();
 
          Node tr("tr");
          Node fileName("td");
@@ -114,7 +156,8 @@ void FileServerResource::handle_get(const request & req, const response & res)
 
          table.AppendChild(tr);
       }
-      doc.AddNodeToBody(table);
+      mainDiv.AppendChild(table);
+      doc.AddNodeToBody(mainDiv);
 
       auto header = header_map();
       auto textDoc = doc.ToString(Readability::MULTILINE);
